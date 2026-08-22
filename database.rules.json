@@ -1,6 +1,66 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true
+    // 1. GLOBAL ACCESS: Only authenticated users can read data
+    ".read": "auth != null",
+
+    // 2. OWNER-BASED ACCESS CONTROL (DAC):
+    // Users can only write to their own profile, custom lists, favorites, and settings
+    "users": {
+      "$uid": {
+        ".write": "auth != null && $uid === auth.uid"
+      }
+    },
+
+    // 3. UNREAD COUNTS:
+    // Senders can increment unread counters for participants; users can reset their own count
+    "unreadCounts": {
+      "$conversationId": {
+        "$uid": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists())"
+        }
+      }
+    },
+
+    // 4. CONVERSATIONS & GROUP PERMISSIONS:
+    "conversations": {
+      "$conversationId": {
+        // Membership-based (ACL): Only participants can update conversation metadata
+        ".write": "auth != null && (newData.exists() ? (!data.exists() ? newData.child('participants/' + auth.uid).val() === true : data.child('participants/' + auth.uid).exists()) : (data.child('isSelfChat').val() === true && data.child('participants/' + auth.uid).exists()))",
+
+        // User clear chat history timestamp
+        "clearedAt": {
+          "$uid": {
+            ".write": "auth != null && $uid === auth.uid && root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists()",
+            ".validate": "newData.isNumber()"
+          }
+        },
+
+        "messages": {
+          "$messageId": {
+            // HYBRID ACCESS CONTROL (ACL + RBAC + ABAC):
+            // 1. CREATE: User must be a participant AND:
+            //    - Sender must be auth.uid OR 'system'
+            //    - [ABAC RULE]: If chat attribute 'settings/sendMessages' === 'admins', sender MUST be an admin (or 'system')
+            // 2. DELETE: Sender can delete, or participants can delete expired disappearing messages
+            // 3. UPDATE: Participants can update status (delivered/read receipts) and cast poll votes
+            ".write": "auth != null && root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists() && (!data.exists() ? ((newData.child('senderId').val() === auth.uid || (newData.child('senderId').val() === 'system' && root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists())) && (root.child('conversations/' + $conversationId + '/settings/sendMessages').val() != 'admins' || root.child('conversations/' + $conversationId + '/admins/' + auth.uid).exists() || newData.child('senderId').val() === 'system')) : (!newData.exists() ? (data.child('senderId').val() === auth.uid || root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists()) : root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists()))",
+
+            // Delete for self flag
+            "deletedFor": {
+              "$uid": {
+                ".write": "auth != null && $uid === auth.uid && root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists()",
+                ".validate": "newData.isBoolean()"
+              }
+            },
+
+            // Delete for everyone flag (only sender can trigger)
+            "deletedForEveryone": {
+              ".write": "auth != null && root.child('conversations/' + $conversationId + '/messages/' + $messageId + '/senderId').val() === auth.uid",
+              ".validate": "newData.isBoolean()"
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -12,59 +12,97 @@ const createImage = (url) =>
     const image = new Image();
     image.addEventListener('load', () => resolve(image));
     image.addEventListener('error', (error) => reject(error));
-    image.setAttribute('crossOrigin', 'anonymous');
+    if (!url.startsWith('data:') && !url.startsWith('blob:')) {
+      image.setAttribute('crossOrigin', 'anonymous');
+    }
     image.src = url;
   });
+
+function getRadianAngle(degreeValue) {
+  return (degreeValue * Math.PI) / 180;
+}
+
+function rotateSize(width, height, rotation) {
+  const rotRad = getRadianAngle(rotation);
+  return {
+    width:
+      Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
+    height:
+      Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
+  };
+}
 
 const getCroppedImg = async (imageSrc, pixelCrop, rotation = 0) => {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
-  const maxSize = Math.max(image.width, image.height);
-  const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+  if (!ctx) {
+    throw new Error('Canvas 2D context not supported');
+  }
 
-  canvas.width = safeArea;
-  canvas.height = safeArea;
+  const rotRad = getRadianAngle(rotation);
 
-  ctx.translate(safeArea / 2, safeArea / 2);
-  ctx.rotate((rotation * Math.PI) / 180);
-  ctx.translate(-safeArea / 2, -safeArea / 2);
-
-  ctx.drawImage(
-    image,
-    safeArea / 2 - image.width / 2,
-    safeArea / 2 - image.height / 2
+  // Calculate bounding box of the rotated image
+  const { width: bBoxWidth, height: bBoxHeight } = rotateSize(
+    image.width,
+    image.height,
+    rotation
   );
 
-  const data = ctx.getImageData(0, 0, safeArea, safeArea);
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
+  // Set canvas size to match the bounding box
+  canvas.width = bBoxWidth;
+  canvas.height = bBoxHeight;
 
-  ctx.putImageData(
-    data,
-    Math.round(0 - safeArea / 2 + image.width / 2 - pixelCrop.x),
-    Math.round(0 - safeArea / 2 + image.height / 2 - pixelCrop.y)
+  // Translate canvas context to a central location on image to allow rotating around the center.
+  ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
+  ctx.rotate(rotRad);
+  ctx.translate(-image.width / 2, -image.height / 2);
+
+  // Draw rotated image
+  ctx.drawImage(image, 0, 0);
+
+  // Create cropped canvas
+  const croppedCanvas = document.createElement('canvas');
+  const croppedCtx = croppedCanvas.getContext('2d');
+
+  if (!croppedCtx) {
+    throw new Error('Cropped canvas 2D context not supported');
+  }
+
+  croppedCanvas.width = pixelCrop.width;
+  croppedCanvas.height = pixelCrop.height;
+
+  croppedCtx.drawImage(
+    canvas,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
   );
 
   return new Promise((resolve, reject) => {
-    canvas.toBlob((file) => {
-      if (file) {
-        file.name = "avatar.jpg";
-        resolve(file);
+    croppedCanvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
       } else {
-        reject(new Error("Canvas is empty"));
+        reject(new Error('Canvas is empty'));
       }
     }, 'image/jpeg', 0.9);
   });
 };
 
 const SettingsModal = ({ user, onClose }) => {
+  const currentUid = user?.uid || user?.id || auth.currentUser?.uid;
   const [currentView, setCurrentView] = useState('menu'); // 'menu', 'profile', 'privacy'
 
   // Profile state
-  const [savedName, setSavedName] = useState(user.name);
-  const [newName, setNewName] = useState(user.name);
+  const [savedName, setSavedName] = useState(user?.name || '');
+  const [newName, setNewName] = useState(user?.name || '');
   const [isUpdatingName, setIsUpdatingName] = useState(false);
   const [nameMessage, setNameMessage] = useState('');
 
@@ -113,6 +151,11 @@ const SettingsModal = ({ user, onClose }) => {
 
   const handleSaveAvatar = async () => {
     if (!cropImage || !croppedAreaPixels) return;
+    if (!currentUid) {
+      setAvatarError('User ID not found.');
+      return;
+    }
+
     setIsUploadingAvatar(true);
     setAvatarError('');
     
@@ -126,7 +169,7 @@ const SettingsModal = ({ user, onClose }) => {
       const newAvatarUrl = result.secure_url;
       
       // Update RTDB (source of truth)
-      await chatService.updateUserAvatar(user.uid, newAvatarUrl);
+      await chatService.updateUserAvatar(currentUid, newAvatarUrl);
       
       // Sync with Firebase Auth photoURL
       if (auth.currentUser) {
@@ -138,16 +181,17 @@ const SettingsModal = ({ user, onClose }) => {
       setCropImage(null);
     } catch (err) {
       console.error('Failed to update avatar:', err);
-      setAvatarError('Failed to update avatar. Please try again.');
+      setAvatarError(err?.message || 'Failed to update avatar. Please try again.');
     } finally {
       setIsUploadingAvatar(false);
     }
   };
 
   const handleRemoveAvatar = async () => {
+    if (!currentUid) return;
     setIsUploadingAvatar(true);
     try {
-      await chatService.updateUserAvatar(user.uid, null);
+      await chatService.updateUserAvatar(currentUid, null);
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, {
           photoURL: null
@@ -162,6 +206,7 @@ const SettingsModal = ({ user, onClose }) => {
   };
 
   const handleUpdateName = async () => {
+    if (!currentUid) return;
     const trimmed = newName.trim();
     if (!trimmed || trimmed === savedName) return;
     setIsUpdatingName(true);
@@ -175,15 +220,13 @@ const SettingsModal = ({ user, onClose }) => {
       }
 
       // Update RTDB
-      await chatService.updateUserName(user.uid, trimmed);
+      await chatService.updateUserName(currentUid, trimmed);
 
       setSavedName(trimmed);
       setNameMessage('Name updated successfully!');
-      alert("Name updated successfully!");
     } catch (err) {
       console.error(err);
-      setNameMessage('Failed to update name');
-      alert("Failed to update name");
+      setNameMessage(err?.message || 'Failed to update name');
     } finally {
       setIsUpdatingName(false);
     }
@@ -193,13 +236,13 @@ const SettingsModal = ({ user, onClose }) => {
     setIsUpdatingPassword(true);
     setPasswordMessage('');
     try {
-      if (auth.currentUser) {
+      if (auth.currentUser && user?.email) {
         await sendPasswordResetEmail(auth, user.email);
         setPasswordMessage("Password reset link sent to your email!");
       }
     } catch (err) {
       console.error(err);
-      setPasswordMessage("Failed to send reset link.");
+      setPasswordMessage(err?.message || "Failed to send reset link.");
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -378,8 +421,8 @@ const SettingsModal = ({ user, onClose }) => {
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Default timer for new individual chats</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <select
-                    value={user.defaultDisappearingDuration || ""}
-                    onChange={(e) => chatService.updateDefaultDisappearingDuration(user.uid, e.target.value ? Number(e.target.value) : null)}
+                    value={user?.defaultDisappearingDuration || ""}
+                    onChange={(e) => currentUid && chatService.updateDefaultDisappearingDuration(currentUid, e.target.value ? Number(e.target.value) : null)}
                     style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '0.9375rem', backgroundColor: 'var(--background-color)', outline: 'none', color: 'var(--text-primary)' }}
                   >
                     <option value="">Off</option>

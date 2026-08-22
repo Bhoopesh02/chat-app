@@ -415,8 +415,7 @@ export const chatService = {
   updateUserName: async (uid, newName) => {
     const userRef = ref(db, `users/${uid}`);
     await update(userRef, {
-      name: newName,
-      avatar: getAvatarFallback(newName, 'user')
+      name: newName
     });
   },
 

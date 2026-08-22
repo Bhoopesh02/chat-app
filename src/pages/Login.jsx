@@ -36,6 +36,8 @@ const Login = () => {
           setError('No account found with this email.');
         } else if (err.code === 'auth/invalid-email') {
           setError('Invalid email address.');
+        } else if (err.code === 'auth/too-many-requests') {
+          setError('Too many requests. Please wait a few minutes before trying again.');
         } else {
           setError('Failed to send reset link. Please try again.');
         }
@@ -95,6 +97,8 @@ const Login = () => {
         setError('Invalid email or password.');
       } else if (err.code === 'auth/weak-password') {
         setError('Password should be at least 6 characters.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Access to this account has been temporarily disabled. Please try again later or reset your password.');
       } else {
         setError('Authentication failed. Please try again.');
       }
