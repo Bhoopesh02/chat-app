@@ -1,0 +1,45 @@
+/* Desktop first - overriding for mobile */
+
+@media (max-width: 768px) {
+  .chat-container {
+    position: relative;
+    display: flex;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    /* transition: transform var(--transition-slow) var(--ease-out-expo); */
+  }
+  
+  /* When a conversation is active, hide the sidebar entirely on mobile */
+  .chat-container.conversation-active .sidebar {
+    display: none;
+  }
+  
+  .chat-area {
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    display: none; /* Hidden by default on mobile when no conversation is active */
+  }
+  
+  /* Show chat area when conversation is active */
+  .chat-container.conversation-active .chat-area {
+    display: flex;
+  }
+  
+  .back-button {
+    display: flex;
+  }
+  
+  .empty-chat {
+    display: none; /* Hide empty chat placeholder on mobile */
+  }
+
+  .message-wrapper {
+    max-width: 85%;
+  }
+}
+
