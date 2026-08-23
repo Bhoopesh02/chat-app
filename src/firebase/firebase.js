@@ -5,13 +5,14 @@ import { getDatabase } from "firebase/database";
 // TODO: Replace the following with your app's Firebase project configuration
 // You can find these values in your Firebase Console -> Project Settings
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL
+  apiKey: "AIzaSyBdPcZCISCP-wJB9rOAKawDnu_PEdDZ6dU",
+  authDomain: "my-chat-app-bcb90.firebaseapp.com",
+  projectId: "my-chat-app-bcb90",
+  storageBucket: "my-chat-app-bcb90.firebasestorage.app",
+  messagingSenderId: "511090289793",
+  appId: "1:511090289793:web:53ddcc6aead72f43de7180",
+  measurementId: "G-6ECNYXBCQC",
+  databaseURL: "https://my-chat-app-bcb90-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 // Initialize Firebase
