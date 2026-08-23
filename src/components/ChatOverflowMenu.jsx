@@ -51,10 +51,6 @@ const ChatOverflowMenu = ({
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-      <button className="btn-icon" onClick={onSearch} title="Search in chat">
-        <Search size={20} />
-      </button>
-
       <div className="dropdown-container" ref={menuRef} style={{ position: 'relative' }}>
         <button className="btn-icon" onClick={() => setIsOpen(!isOpen)} title="More options">
           <MoreVertical size={20} />

@@ -421,6 +421,16 @@ const Chat = ({ currentUser }) => {
               onBack={handleBackToSidebar}
               onViewProfile={setSelectedUserToView}
               onViewGroupDetails={() => setIsGroupDetailsOpen(true)}
+              chatSearchQuery={chatSearchQuery}
+              onSearchChange={(query) => {
+                setChatSearchQuery(query);
+                if (query) setIsSearchActive(true);
+              }}
+              onSearchClose={() => {
+                setIsSearchActive(false);
+                setChatSearchQuery('');
+              }}
+              isSearchActive={isSearchActive}
               onSearch={() => setIsSearchActive(!isSearchActive)}
               onSelectMessages={() => setSelectionMode(!selectionMode)}
               onClearChat={handleClearChatRequest}
@@ -432,21 +442,6 @@ const Chat = ({ currentUser }) => {
               isMuted={currentUserProfile.mutedConversations?.[activeChat]}
               isFavourite={favourites[activeChat]}
             />
-            {isSearchActive && (
-              <div style={{ padding: '0.5rem', backgroundColor: 'var(--surface-color)', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center' }}>
-                <input 
-                  type="text" 
-                  placeholder="Search in chat..." 
-                  value={chatSearchQuery}
-                  onChange={(e) => setChatSearchQuery(e.target.value)}
-                  style={{ flex: 1, padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--primary-color)', outline: 'none', boxShadow: '0 0 0 3px rgba(24, 169, 153, 0.15)', backgroundColor: 'var(--surface-color)', color: 'var(--text-primary)' }}
-                  autoFocus
-                />
-                <button className="btn-icon" onClick={() => { setIsSearchActive(false); setChatSearchQuery(''); }} style={{ marginLeft: '0.5rem' }}>
-                  <X size={20} />
-                </button>
-              </div>
-            )}
             {selectionMode && (
               <div style={{ padding: '0.5rem', backgroundColor: 'var(--primary-color)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

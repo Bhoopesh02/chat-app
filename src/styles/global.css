@@ -195,7 +195,8 @@ a {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: overlayFadeIn var(--transition-fast) forwards;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .modal-content {
@@ -205,8 +206,9 @@ a {
   width: 90%;
   max-width: 400px;
   box-shadow: var(--shadow-lg);
-  animation: modalZoomIn var(--transition-normal) forwards;
   will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .modal-header {
@@ -359,7 +361,6 @@ a {
     border-bottom-right-radius: 0;
     margin: 0;
     padding: 1.5rem 1rem env(safe-area-inset-bottom, 1rem); /* Safe area support */
-    animation: slideUpBottom var(--transition-normal) forwards;
     max-height: 90svh;
     overflow-y: auto;
   }

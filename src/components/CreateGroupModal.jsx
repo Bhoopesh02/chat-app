@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Search } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import AnimatedSearchBar from './AnimatedSearchBar';
 
 const CreateGroupModal = ({ users = [], onClose, onCreateGroup }) => {
   const [groupName, setGroupName] = useState('');
@@ -69,28 +70,13 @@ const CreateGroupModal = ({ users = [], onClose, onCreateGroup }) => {
           <h3 style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Select Members ({selectedMembers.length} selected)</h3>
         </div>
 
-        <div className="search-box" style={{ border: '1px solid var(--border-color)', marginBottom: '0.75rem' }}>
-          <Search size={16} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
-          <input 
-            type="text" 
-            placeholder="Search members to add..." 
-            value={memberSearch}
-            onChange={(e) => setMemberSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setMemberSearch('');
-            }}
-          />
-          {memberSearch && (
-            <button 
-              type="button" 
-              onClick={() => setMemberSearch('')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}
-              title="Clear"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        <AnimatedSearchBar 
+          value={memberSearch}
+          onChange={setMemberSearch}
+          placeholder="Search members to add..."
+          expandable={false}
+          style={{ marginBottom: '0.75rem' }}
+        />
         
         <div className="user-list" style={{ maxHeight: '200px', overflowY: 'auto' }}>
           {filteredUsers.length === 0 ? (

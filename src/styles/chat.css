@@ -55,14 +55,14 @@
 }
 
 .search-container {
-  padding: 1rem;
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--border-color);
 }
 
 .search-box {
   display: flex;
   align-items: center;
-  background-color: var(--background-color);
+  background-color: var(--surface-color);
   border-radius: var(--radius-full);
   padding: 0.5rem 0.875rem;
   gap: 0.5rem;
@@ -74,7 +74,7 @@
 
 .search-box:focus-within {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(24, 169, 153, 0.15);
+  box-shadow: 0 0 0 3px rgba(24, 169, 153, 0.18);
   background-color: var(--surface-color);
 }
 
@@ -89,6 +89,173 @@
 
 .search-box input::placeholder {
   color: var(--text-light);
+}
+
+/* ---------- Animated Search Bar Component Theme ---------- */
+.search-animated {
+  --search-ease: cubic-bezier(0.65, 0, 0.35, 1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  width: 40px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: width 480ms var(--search-ease), 
+              background-color 300ms var(--search-ease),
+              border-color 300ms var(--search-ease),
+              box-shadow 300ms var(--search-ease);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.search-animated.is-expandable:not(.open) {
+  background-color: rgba(0, 0, 0, 0.04);
+  border-color: transparent;
+}
+
+.search-animated.is-expandable:not(.open):hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-color: var(--border-color);
+}
+
+.search-animated.is-static {
+  width: 100%;
+}
+
+.search-animated.open {
+  width: 100%;
+  background: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+.search-animated.is-expandable.open {
+  width: min(220px, 45vw);
+  background: var(--surface-color);
+  border-color: var(--primary-color);
+}
+
+.search-animated .search-icon-btn {
+  flex: 0 0 40px;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  transition: color 200ms var(--search-ease);
+}
+
+.search-animated .search-icon-btn:hover {
+  color: var(--primary-color);
+}
+
+.search-animated.open .search-icon-btn {
+  color: var(--primary-color);
+}
+
+.search-animated .search-icon-btn svg,
+.search-animated .search-icon-btn .lucide {
+  width: 18px;
+  height: 18px;
+  transition: transform 420ms var(--search-ease);
+}
+
+.search-animated.open .search-icon-btn svg,
+.search-animated.open .search-icon-btn .lucide {
+  transform: rotate(-90deg) scale(0.92);
+}
+
+.search-animated .search-input {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  padding: 0;
+  opacity: 0;
+  transform: translateX(-8px);
+  /* Fast fade out with NO delay when closing */
+  transition: opacity 150ms ease, transform 150ms ease;
+  pointer-events: none;
+}
+
+.search-animated.open .search-input {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  /* Delayed fade in when opening so container expands first */
+  transition: opacity 300ms var(--search-ease) 150ms, transform 300ms var(--search-ease) 150ms;
+}
+
+/* Ensure sidebar search bar expands to full width */
+.sidebar .search-animated.is-expandable.open {
+  width: 100%;
+}
+
+.search-animated .search-input::placeholder {
+  color: var(--text-light);
+}
+
+.search-animated .clear-btn {
+  flex: 0 0 32px;
+  height: 32px;
+  width: 32px;
+  margin-right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 200ms var(--search-ease), 
+              transform 200ms var(--search-ease), 
+              background-color 150ms ease, 
+              color 150ms ease;
+}
+
+.search-animated .clear-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-primary);
+}
+
+.search-animated.open.has-value .clear-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.search-animated .clear-btn svg,
+.search-animated .clear-btn .lucide {
+  width: 14px;
+  height: 14px;
+}
+
+/* subtle focus ring for accessibility */
+.search-animated:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(24, 169, 153, 0.18), var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-animated, 
+  .search-animated .search-icon-btn svg, 
+  .search-animated .search-input, 
+  .search-animated .clear-btn {
+    transition: none !important;
+  }
 }
 
 .filter-tabs {

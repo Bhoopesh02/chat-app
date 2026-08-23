@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Search } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import AnimatedSearchBar from './AnimatedSearchBar';
 
 const NewChatModal = ({ users = [], currentUser, onClose, onStartChat }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,31 +35,14 @@ const NewChatModal = ({ users = [], currentUser, onClose, onStartChat }) => {
           </button>
         </div>
         
-        <div className="search-box" style={{ border: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
-          <Search size={16} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
-          <input 
-            type="text" 
-            placeholder="Search users..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                setSearchQuery('');
-              }
-            }}
-            autoFocus
-          />
-          {searchQuery && (
-            <button 
-              type="button" 
-              onClick={() => setSearchQuery('')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}
-              title="Clear"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        <AnimatedSearchBar 
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search users..."
+          expandable={false}
+          autoFocus={true}
+          style={{ marginBottom: '0.75rem' }}
+        />
 
         <div className="user-list">
           {filteredUsers.length === 0 ? (

@@ -264,12 +264,14 @@ const SettingsModal = ({ user, onClose }) => {
   return (
     <motion.div 
       className="modal-overlay"
+      onClick={onClose}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <motion.div 
         className="modal-content" 
+        onClick={(e) => e.stopPropagation()}
         style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -287,17 +289,14 @@ const SettingsModal = ({ user, onClose }) => {
 
           <h2 style={{
             fontSize: '1.125rem', fontWeight: '600', flex: 1, textAlign: 'center', margin: 0,
-            marginLeft: currentView === 'menu' ? '28px' : '0',
-            marginRight: currentView !== 'menu' ? '28px' : '0'
+            marginLeft: currentView !== 'menu' ? '0' : '28px'
           }}>
             {currentView === 'menu' ? 'Settings' : currentView === 'profile' ? 'Profile' : 'Privacy Settings'}
           </h2>
 
-          {currentView === 'menu' && (
-            <button className="btn-icon" onClick={onClose} style={{ marginLeft: 'auto', padding: '0.25rem' }}>
-              <X size={20} />
-            </button>
-          )}
+          <button className="btn-icon" onClick={onClose} style={{ marginLeft: 'auto', padding: '0.25rem' }}>
+            <X size={20} />
+          </button>
         </div>
 
         {/* Content */}

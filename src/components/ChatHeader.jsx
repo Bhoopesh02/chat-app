@@ -1,11 +1,13 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import ChatOverflowMenu from './ChatOverflowMenu';
+import AnimatedSearchBar from './AnimatedSearchBar';
 import { capitalizeName, getDisplayAvatar } from '../utils/stringUtils';
 
 const ChatHeader = ({ 
   chat, currentUser, allUsers, onBack, onViewProfile, onViewGroupDetails,
-  onSearch, onSelectMessages, onClearChat, onDeleteChat, onDisappearingMessages,
+  onSearch, chatSearchQuery = '', onSearchChange, onSearchClose, isSearchActive,
+  onSelectMessages, onClearChat, onDeleteChat, onDisappearingMessages,
   onMuteToggle, onAddToFavourites, onAddToList, isMuted, isFavourite
 }) => {
   if (!chat) return null;
@@ -70,7 +72,7 @@ const ChatHeader = ({
       <div 
         className="chat-header-info"
         onClick={handleInfoClick}
-        style={{ cursor: 'pointer', flex: 1 }}
+        style={{ cursor: 'pointer', flex: 1, minWidth: 0 }}
       >
         {chat.type === 'group' ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '1rem', fontWeight: 600 }}>
@@ -89,6 +91,18 @@ const ChatHeader = ({
           </>
         )}
       </div>
+
+      <AnimatedSearchBar 
+        value={chatSearchQuery}
+        onChange={(val) => {
+          if (onSearchChange) onSearchChange(val);
+        }}
+        placeholder="Search messages..."
+        expandable={true}
+        defaultOpen={isSearchActive}
+        onClose={onSearchClose}
+        onClear={() => onSearchChange && onSearchChange('')}
+      />
 
       <ChatOverflowMenu
         chatType={chat.type === 'private' && otherUser?.id === currentUser.uid ? 'self' : chat.type}

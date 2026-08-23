@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Users, LogOut, X, Filter, MoreVertical, ChevronDown } from 'lucide-react';
+import { Plus, Users, MoreVertical, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { chatService } from '../services/chatService';
 import { capitalizeName, getDisplayAvatar } from '../utils/stringUtils';
+import AnimatedSearchBar from './AnimatedSearchBar';
 
 const Sidebar = ({ 
   user, 
@@ -183,30 +184,12 @@ const Sidebar = ({
 
       {/* Search and Filter */}
       <div className="search-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div className="search-box">
-          <Search size={16} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                onSearchChange('');
-              }
-            }}
-          />
-          {searchQuery && (
-            <button 
-              type="button" 
-              onClick={() => onSearchChange('')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}
-              title="Clear search"
-            >
-              <X size={15} />
-            </button>
-          )}
-        </div>
+        <AnimatedSearchBar 
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder="Search chats, contacts..."
+          expandable={true}
+        />
         
         {/* Horizontal Filter Tabs */}
         <div className="filter-tabs" style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', paddingBottom: '0.25rem' }}>

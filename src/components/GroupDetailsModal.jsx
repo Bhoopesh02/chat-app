@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Search, UserPlus, Shield, Settings, Image as ImageIcon, ChevronRight, UserMinus } from 'lucide-react';
 import { capitalizeName, getDisplayAvatar } from '../utils/stringUtils';
 import { motion } from 'framer-motion';
+import AnimatedSearchBar from './AnimatedSearchBar';
 
 const GroupDetailsModal = ({ chat, users, currentUser, onClose, onAddMembers, onMakeAdmin, onRemoveMember, onLeaveGroup, onOpenSettings, onOpenMediaGallery }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,73 +124,18 @@ const GroupDetailsModal = ({ chat, users, currentUser, onClose, onAddMembers, on
             </div>
 
             {isSearchingMembers ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.5rem 0.75rem 0.5rem', marginTop: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                <div 
-                  className="search-box" 
-                  style={{ 
-                    flex: 1, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.5rem', 
-                    backgroundColor: 'var(--background-color)', 
-                    border: '1px solid var(--border-color)', 
-                    borderRadius: 'var(--radius-md)', 
-                    padding: '0.4rem 0.75rem' 
-                  }}
-                >
-                  <Search size={16} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
-                  <input 
-                    type="text" 
-                    placeholder="Search members..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') {
-                        setIsSearchingMembers(false);
-                        setSearchQuery('');
-                      }
-                    }}
-                    autoFocus
-                    style={{ 
-                      flex: 1, 
-                      background: 'transparent', 
-                      border: 'none', 
-                      outline: 'none', 
-                      fontSize: '0.875rem', 
-                      color: 'var(--text-primary)' 
-                    }}
-                  />
-                  {searchQuery && (
-                    <button 
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      style={{ 
-                        background: 'none', 
-                        border: 'none', 
-                        cursor: 'pointer', 
-                        padding: 0, 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        color: 'var(--text-secondary)' 
-                      }}
-                      title="Clear"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-                <button 
-                  type="button"
-                  className="btn-icon" 
-                  onClick={() => {
+              <div style={{ padding: '0.25rem 0.5rem 0.75rem 0.5rem', marginTop: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                <AnimatedSearchBar 
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search members..."
+                  expandable={false}
+                  autoFocus={true}
+                  onClose={() => {
                     setIsSearchingMembers(false);
                     setSearchQuery('');
                   }}
-                  title="Close search"
-                  style={{ flexShrink: 0, color: 'var(--text-secondary)' }}
-                >
-                  <X size={18} />
-                </button>
+                />
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.5rem 1rem 0.5rem', marginTop: '1rem', borderBottom: '1px solid var(--border-color)' }}>
@@ -336,26 +282,13 @@ const GroupDetailsModal = ({ chat, users, currentUser, onClose, onAddMembers, on
         ) : (
           <div style={{ animation: 'fadeIn var(--transition-fast) var(--ease-out-expo) forwards', overflowY: 'auto', paddingRight: '0.25rem', paddingBottom: '1rem', flex: 1 }}>
             <div className="search-container" style={{ padding: '0', marginBottom: '1rem', border: 'none' }}>
-              <div className="search-box" style={{ border: '1px solid var(--border-color)' }}>
-                <Search className="search-icon" size={18} color="var(--text-light)" />
-                <input 
-                  type="text" 
-                  placeholder="Search users to add..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  autoFocus
-                />
-                {searchQuery && (
-                  <button 
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}
-                    title="Clear"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
+              <AnimatedSearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search users to add..."
+                expandable={false}
+                autoFocus={true}
+              />
             </div>
 
             <div className="user-list" style={{ maxHeight: '300px', margin: 0, marginBottom: '1.5rem' }}>
