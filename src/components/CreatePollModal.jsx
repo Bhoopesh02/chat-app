@@ -122,7 +122,8 @@ const CreatePollModal = ({ onClose, onSendPoll }) => {
                   type="text" 
                   placeholder={`Option ${index + 1}`}
                   value={opt.text}
-                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  maxLength={100}
+                  onChange={(e) => handleOptionChange(index, e.target.value.slice(0, 100))}
                 />
                 {options.length > 2 && (
                   <button 

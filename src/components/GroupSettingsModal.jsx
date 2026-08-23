@@ -202,6 +202,7 @@ const GroupSettingsModal = ({ chat, users, currentUser, onClose, userPreferences
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  maxLength={50}
                   disabled={!canEditInfo}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: canEditInfo ? 'var(--background-color)' : 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                 />

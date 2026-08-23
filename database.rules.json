@@ -45,6 +45,10 @@
             // 3. UPDATE: Participants can update status (delivered/read receipts) and cast poll votes
             ".write": "auth != null && root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists() && (!data.exists() ? ((newData.child('senderId').val() === auth.uid || (newData.child('senderId').val() === 'system' && root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists())) && (root.child('conversations/' + $conversationId + '/settings/sendMessages').val() != 'admins' || root.child('conversations/' + $conversationId + '/admins/' + auth.uid).exists() || newData.child('senderId').val() === 'system')) : (!newData.exists() ? (data.child('senderId').val() === auth.uid || root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists()) : root.child('conversations/' + $conversationId + '/participants/' + auth.uid).exists()))",
 
+            "text": {
+              ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 4000)"
+            },
+
             // Delete for self flag
             "deletedFor": {
               "$uid": {

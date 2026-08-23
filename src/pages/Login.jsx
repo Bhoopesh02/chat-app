@@ -1,28 +1,9 @@
 import React, { useState } from 'react';
 import { MessageSquare, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { chatService } from '../services/chatService';
-
-const validatePassword = (password) => {
-  if (password.length < 6) {
-    return 'Password must be at least 6 characters long.';
-  }
-  if (!/[A-Z]/.test(password)) {
-    return 'Password must contain at least one uppercase letter.';
-  }
-  if (!/[a-z]/.test(password)) {
-    return 'Password must contain at least one lowercase letter.';
-  }
-  if (!/[0-9]/.test(password)) {
-    return 'Password must contain at least one number.';
-  }
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    return 'Password must contain at least one special character.';
-  }
-  return null;
-};
 
 const Login = () => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -66,27 +47,48 @@ const Login = () => {
       return;
     }
 
+    if (isRegistering && !name.trim()) {
+      setError('Name is required for registration.');
+      return;
+    }
+
     if (!email || !password) {
       setError('Email and password are required.');
       return;
     }
 
-    const trimmedName = name.trim();
-
     if (isRegistering) {
+      const trimmedName = name.trim();
       if (!trimmedName) {
         setError('Username is required for registration.');
         return;
       }
 
+      // Username length validation (5 to 8 characters)
       if (trimmedName.length < 5 || trimmedName.length > 8) {
         setError('Username must be between 5 and 8 characters long.');
         return;
       }
 
-      const passError = validatePassword(password);
-      if (passError) {
-        setError(passError);
+      // Password strength validation
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters long.');
+        return;
+      }
+      if (!/[A-Z]/.test(password)) {
+        setError('Password must contain at least one uppercase letter.');
+        return;
+      }
+      if (!/[a-z]/.test(password)) {
+        setError('Password must contain at least one lowercase letter.');
+        return;
+      }
+      if (!/[0-9]/.test(password)) {
+        setError('Password must contain at least one number.');
+        return;
+      }
+      if (!/[^A-Za-z0-9]/.test(password)) {
+        setError('Password must contain at least one special character.');
         return;
       }
     }
@@ -95,29 +97,35 @@ const Login = () => {
 
     try {
       if (isRegistering) {
-        // 1. Create user in Firebase Auth
+        const trimmedName = name.trim();
+
+        // Create user in Firebase Auth first (to get auth context for RTDB read)
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
-        // 2. Check if username already exists in Realtime Database
-        const usernameExists = await chatService.checkUsernameExists(trimmedName, userCredential.user.uid);
-        if (usernameExists) {
-          await userCredential.user.delete();
-          setError('The username is already exist enter different one');
+
+        // Check if username already exists in RTDB
+        const isUsernameTaken = await chatService.checkUsernameExists(trimmedName);
+        if (isUsernameTaken) {
+          // Delete created auth account & sign out
+          await userCredential.user.delete().catch(() => {});
+          await signOut(auth).catch(() => {});
+          setError('the username is already exist enter different one');
           setLoading(false);
           return;
         }
 
-        // 3. Update profile display name & RTDB user profile
         await updateProfile(userCredential.user, { displayName: trimmedName });
+        // Create corresponding user profile in RTDB
         await chatService.createUserProfile(userCredential.user.uid, trimmedName, email);
-        
+
         setSuccessMessage('Registration successful!');
       } else {
         // Login existing user
         await signInWithEmailAndPassword(auth, email, password);
       }
+      // Note: Navigation to /chat happens automatically via App.jsx's onAuthStateChanged
     } catch (err) {
       console.error(err);
+      // Map common Firebase auth errors to user-friendly messages
       if (err.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists.');
       } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
@@ -142,6 +150,7 @@ const Login = () => {
     
     try {
       await signInWithPopup(auth, provider);
+      // navigation to /chat happens automatically via App.jsx's onAuthStateChanged
     } catch (err) {
       console.error(err);
       if (err.code === 'auth/account-exists-with-different-credential') {
@@ -157,7 +166,7 @@ const Login = () => {
           } else {
              setError('An account already exists with this email.');
           }
-        } catch (fetchErr) {
+        } catch {
            setError('An account already exists with this email. Please sign in with your password.');
         }
       } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
@@ -200,13 +209,13 @@ const Login = () => {
         <form className="login-form" onSubmit={handleSubmit}>
           {!isForgotPassword && isRegistering && (
             <div className="form-group">
-              <label htmlFor="name">Username</label>
+              <label htmlFor="name">Name</label>
               <input
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter username (5-8 characters)"
+                placeholder="Enter your name (5-8 chars)"
                 minLength={5}
                 maxLength={8}
                 required={isRegistering}

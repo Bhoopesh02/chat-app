@@ -149,7 +149,8 @@ const MessageInput = ({ onSendMessage }) => {
   };
 
   const handleSend = async () => {
-    if (!text.trim() && selectedFiles.length === 0) return;
+    const messageText = text.trim().slice(0, 100);
+    if (!messageText && selectedFiles.length === 0) return;
 
     let mediaData = null;
 
@@ -212,7 +213,7 @@ const MessageInput = ({ onSendMessage }) => {
       }
     }
 
-    onSendMessage(text, mediaData);
+    onSendMessage(messageText, mediaData);
     setText('');
     handleClearFile();
     if (textareaRef.current) {
@@ -511,11 +512,17 @@ const MessageInput = ({ onSendMessage }) => {
                 ref={textareaRef}
                 placeholder="Message"
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => setText(e.target.value.slice(0, 100))}
+                maxLength={100}
                 onKeyDown={handleKeyDown}
                 rows="1"
                 disabled={isUploading}
               />
+              {text.length > 0 && (
+                <span className={`char-counter ${text.length >= 90 ? 'limit-near' : ''}`}>
+                  {text.length}/100
+                </span>
+              )}
             </div>
             
             <motion.button 

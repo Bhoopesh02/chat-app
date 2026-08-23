@@ -941,6 +941,23 @@
   padding: 0;
 }
 
+.char-counter {
+  font-size: 0.7rem;
+  color: var(--text-secondary, #6b7280);
+  margin-left: 0.5rem;
+  align-self: flex-end;
+  user-select: none;
+  white-space: nowrap;
+  opacity: 0.7;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.char-counter.limit-near {
+  color: #ef4444;
+  font-weight: 600;
+  opacity: 1;
+}
+
 /* Mic/Send morphing button */
 .composer-action-btn {
   display: flex;

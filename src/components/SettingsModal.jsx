@@ -209,9 +209,22 @@ const SettingsModal = ({ user, onClose }) => {
     if (!currentUid) return;
     const trimmed = newName.trim();
     if (!trimmed || trimmed === savedName) return;
+
+    if (trimmed.length < 5 || trimmed.length > 8) {
+      setNameMessage('Username must be between 5 and 8 characters long.');
+      return;
+    }
+
     setIsUpdatingName(true);
     setNameMessage('');
     try {
+      const isTaken = await chatService.checkUsernameExists(trimmed);
+      if (isTaken) {
+        setNameMessage('the username is already exist enter different one');
+        setIsUpdatingName(false);
+        return;
+      }
+
       // Update Auth Profile
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, {

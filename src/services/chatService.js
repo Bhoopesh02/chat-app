@@ -22,20 +22,20 @@ export const chatService = {
   /**
    * Checks if a username already exists in RTDB (case-insensitive)
    */
-  checkUsernameExists: async (name, currentUid = null) => {
-    const usersRef = ref(db, 'users');
-    const snapshot = await get(usersRef);
-    if (!snapshot.exists()) return false;
-    
-    let exists = false;
-    const lowerName = name.toLowerCase().trim();
-    snapshot.forEach((child) => {
-      const userData = child.val();
-      if (child.key !== currentUid && userData && userData.name && userData.name.toLowerCase().trim() === lowerName) {
-        exists = true;
+  checkUsernameExists: async (username) => {
+    try {
+      const usersRef = ref(db, 'users');
+      const snapshot = await get(usersRef);
+      if (snapshot.exists()) {
+        const usersObj = snapshot.val();
+        const target = username.trim().toLowerCase();
+        return Object.values(usersObj).some(user => user && user.name && user.name.trim().toLowerCase() === target);
       }
-    });
-    return exists;
+      return false;
+    } catch (err) {
+      console.error("Error checking username existence:", err);
+      return false;
+    }
   },
 
   /**
@@ -426,16 +426,6 @@ export const chatService = {
     });
 
     return () => off(messagesQuery, 'value', listener);
-  },
-
-  /**
-   * Updates user's name
-   */
-  updateUserName: async (uid, newName) => {
-    const userRef = ref(db, `users/${uid}`);
-    await update(userRef, {
-      name: newName
-    });
   },
 
   /**

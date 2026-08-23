@@ -60,6 +60,7 @@ const CreateGroupModal = ({ users = [], onClose, onCreateGroup }) => {
             placeholder="Group Name" 
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
+            maxLength={50}
             autoFocus
           />
         </div>
