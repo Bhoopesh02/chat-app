@@ -20,6 +20,25 @@ import { getAvatarFallback } from '../utils/stringUtils';
 export const chatService = {
   
   /**
+   * Checks if a username already exists in RTDB (case-insensitive)
+   */
+  checkUsernameExists: async (name, currentUid = null) => {
+    const usersRef = ref(db, 'users');
+    const snapshot = await get(usersRef);
+    if (!snapshot.exists()) return false;
+    
+    let exists = false;
+    const lowerName = name.toLowerCase().trim();
+    snapshot.forEach((child) => {
+      const userData = child.val();
+      if (child.key !== currentUid && userData && userData.name && userData.name.toLowerCase().trim() === lowerName) {
+        exists = true;
+      }
+    });
+    return exists;
+  },
+
+  /**
    * Creates a user profile in RTDB
    */
   createUserProfile: async (uid, name, email, photoUrl = null) => {

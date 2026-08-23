@@ -5,6 +5,25 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswor
 import { auth } from '../firebase/firebase';
 import { chatService } from '../services/chatService';
 
+const validatePassword = (password) => {
+  if (password.length < 6) {
+    return 'Password must be at least 6 characters long.';
+  }
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter.';
+  }
+  if (!/[a-z]/.test(password)) {
+    return 'Password must contain at least one lowercase letter.';
+  }
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one number.';
+  }
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return 'Password must contain at least one special character.';
+  }
+  return null;
+};
+
 const Login = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -47,50 +66,58 @@ const Login = () => {
       return;
     }
 
-    if (isRegistering && !name.trim()) {
-      setError('Name is required for registration.');
-      return;
-    }
-
     if (!email || !password) {
       setError('Email and password are required.');
       return;
+    }
+
+    const trimmedName = name.trim();
+
+    if (isRegistering) {
+      if (!trimmedName) {
+        setError('Username is required for registration.');
+        return;
+      }
+
+      if (trimmedName.length < 5 || trimmedName.length > 8) {
+        setError('Username must be between 5 and 8 characters long.');
+        return;
+      }
+
+      const passError = validatePassword(password);
+      if (passError) {
+        setError(passError);
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
       if (isRegistering) {
-        // Create user in Firebase Auth
+        // 1. Create user in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: name.trim() });
-        // Create corresponding user profile in RTDB
-        await chatService.createUserProfile(userCredential.user.uid, name.trim(), email);
         
-        // Send email verification
-        // await sendEmailVerification(userCredential.user);
-        // await signOut(auth);
+        // 2. Check if username already exists in Realtime Database
+        const usernameExists = await chatService.checkUsernameExists(trimmedName, userCredential.user.uid);
+        if (usernameExists) {
+          await userCredential.user.delete();
+          setError('The username is already exist enter different one');
+          setLoading(false);
+          return;
+        }
+
+        // 3. Update profile display name & RTDB user profile
+        await updateProfile(userCredential.user, { displayName: trimmedName });
+        await chatService.createUserProfile(userCredential.user.uid, trimmedName, email);
         
         setSuccessMessage('Registration successful!');
-        // setIsRegistering(false);
-        // setLoading(false);
-        // return;
       } else {
         // Login existing user
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
-        if (!userCredential.user.emailVerified) {
-          // await sendEmailVerification(userCredential.user);
-          // await signOut(auth);
-          // setError('Email not verified. A new verification link has been sent to your email.');
-          // setLoading(false);
-          // return;
-        }
+        await signInWithEmailAndPassword(auth, email, password);
       }
-      // Note: Navigation to /chat happens automatically via App.jsx's onAuthStateChanged
     } catch (err) {
       console.error(err);
-      // Map common Firebase auth errors to user-friendly messages
       if (err.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists.');
       } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
@@ -115,7 +142,6 @@ const Login = () => {
     
     try {
       await signInWithPopup(auth, provider);
-      // navigation to /chat happens automatically via App.jsx's onAuthStateChanged
     } catch (err) {
       console.error(err);
       if (err.code === 'auth/account-exists-with-different-credential') {
@@ -174,13 +200,15 @@ const Login = () => {
         <form className="login-form" onSubmit={handleSubmit}>
           {!isForgotPassword && isRegistering && (
             <div className="form-group">
-              <label htmlFor="name">Name</label>
+              <label htmlFor="name">Username</label>
               <input
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
+                placeholder="Enter username (5-8 characters)"
+                minLength={5}
+                maxLength={8}
                 required={isRegistering}
               />
             </div>
