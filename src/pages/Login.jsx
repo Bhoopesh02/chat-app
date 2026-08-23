@@ -169,8 +169,14 @@ const Login = () => {
         } catch {
            setError('An account already exists with this email. Please sign in with your password.');
         }
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Popup was blocked by your browser. Please allow popups for this site and try again.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('Domain not authorized for Firebase Auth. Please add your current domain/localhost to Firebase Console > Authentication > Settings > Authorized domains.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('Google Sign-In is not enabled in Firebase Console > Authentication > Sign-in method.');
       } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-        setError('Google sign-in failed. Please try again.');
+        setError(err.message || 'Google sign-in failed. Please try again.');
       }
     } finally {
       setLoading(false);
