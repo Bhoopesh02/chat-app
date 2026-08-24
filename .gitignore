@@ -8,7 +8,14 @@ pnpm-debug.log*
 lerna-debug.log*
 firebase-debug.log*
 firestore-debug.log*
+database-debug.log*
 ui-debug.log*
+
+# Diagnostic & Lint Caches
+coverage/
+.nyc_output/
+.oxlintcache
+.eslintcache
 
 # Dependencies
 node_modules/
@@ -19,13 +26,15 @@ node_modules/
 dist/
 dist-ssr/
 build/
-coverage/
+out/
+.vite/
 
-# Environment variables
+# Environment Variables & Secrets
 .env
 .env.*
 !.env.example
 *.local
+*.pem
 
 # Firebase
 .firebase/
@@ -35,17 +44,21 @@ coverage/
 # Editor directories and OS files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea/
-.DS_Store
-Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
 
 # Agent & Skill files
 .agents/
 skills-lock.json
 SKILL.md
+
 
