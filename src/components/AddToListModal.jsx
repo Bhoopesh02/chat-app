@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { chatService } from '../services/chatService';
+import { Modal, Spinner, Text } from './ui';
 
 const AddToListModal = ({ currentUser, userLists, conversationId, onClose }) => {
   const [activeLists, setActiveLists] = useState({});
@@ -55,41 +56,49 @@ const AddToListModal = ({ currentUser, userLists, conversationId, onClose }) => 
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content" style={{ width: '350px', maxWidth: '90vw' }}>
-        <div className="modal-header">
-          <h2 className="modal-title">Add to List</h2>
-          <button className="btn-icon" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="user-list" style={{ maxHeight: '300px', marginTop: '1rem' }}>
-          {loading ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-light)', padding: '1rem' }}>
-              Loading...
-            </p>
-          ) : userLists.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-light)', padding: '1rem' }}>
-              No custom lists found. Create one from Manage Lists.
-            </p>
-          ) : (
-            userLists.map(list => (
-              <div 
-                key={list.id} 
-                className="selectable-user" 
-                onClick={() => handleToggle(list)}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '4px', border: `1px solid ${activeLists[list.id] ? 'var(--primary-color)' : 'var(--border-color)'}`, backgroundColor: activeLists[list.id] ? 'var(--primary-color)' : 'transparent', color: 'white', marginRight: '0.75rem' }}>
-                  {activeLists[list.id] && <Check size={14} />}
-                </div>
-                <span style={{ fontSize: '0.9375rem', fontWeight: 500, flex: 1 }}>{list.name}</span>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Add to List"
+      maxWidth="350px"
+    >
+      <div className="user-list" style={{ maxHeight: '300px', marginTop: '0.5rem' }}>
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1.5rem', gap: '0.5rem' }}>
+            <Spinner size="sm" color="primary" />
+            <Text variant="caption" color="secondary">Loading lists...</Text>
+          </div>
+        ) : userLists.length === 0 ? (
+          <Text align="center" color="light" style={{ padding: '1rem' }}>
+            No custom lists found. Create one from Manage Lists.
+          </Text>
+        ) : (
+          userLists.map(list => (
+            <div 
+              key={list.id} 
+              className="selectable-user" 
+              onClick={() => handleToggle(list)}
+            >
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                width: '20px', 
+                height: '20px', 
+                borderRadius: '4px', 
+                border: `1px solid ${activeLists[list.id] ? 'var(--primary-color)' : 'var(--border-color)'}`, 
+                backgroundColor: activeLists[list.id] ? 'var(--primary-color)' : 'transparent', 
+                color: 'white', 
+                marginRight: '0.75rem' 
+              }}>
+                {activeLists[list.id] && <Check size={14} />}
               </div>
-            ))
-          )}
-        </div>
+              <Text variant="body" weight={500} style={{ flex: 1 }}>{list.name}</Text>
+            </div>
+          ))
+        )}
       </div>
-    </div>
+    </Modal>
   );
 };
 

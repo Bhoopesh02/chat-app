@@ -57,7 +57,8 @@ Desktop.ini
 ehthumbs.db
 
 # Agent & Skill files
-.agents/
+.agents/*
+!.agents/rules/
 skills-lock.json
 SKILL.md
 
